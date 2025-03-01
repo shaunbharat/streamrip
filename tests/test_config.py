@@ -221,6 +221,7 @@ def test_sample_config_data_fields(sample_config_data):
         ),
         qobuz_filters=QobuzDiscographyFilterConfig(
             extras=False,
+            ensure_correct_artist=False,
             repeats=False,
             non_albums=False,
             features=False,

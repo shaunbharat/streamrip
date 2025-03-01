@@ -115,6 +115,8 @@ lossy_bitrate = 320
 [qobuz_filters]
 # Remove Collectors Editions, live recordings, etc.
 extras = false
+# Only download albums if the artist id requested, matches an id that is credited on the album.
+ensure_correct_artist = false
 # Picks the highest quality out of albums with identical titles.
 repeats = false
 # Remove EPs and Singles
