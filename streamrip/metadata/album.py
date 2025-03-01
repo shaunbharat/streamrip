@@ -35,6 +35,7 @@ class AlbumMetadata:
     info: AlbumInfo
     album: str
     albumartist: str
+    credited_artist_ids: set[str]
     year: str
     genre: list[str]
     covers: Covers
@@ -91,10 +92,24 @@ class AlbumMetadata:
 
         _copyright = resp.get("copyright", "")
 
+        credited_artist_ids: set[str] = set()
+
         if artists := resp.get("artists"):
+            credited_artist_ids.update(str(a["id"]) for a in artists)
             albumartist = ", ".join(a["name"] for a in artists)
         else:
             albumartist = typed(safe_get(resp, "artist", "name"), str)
+
+        if artist_id := safe_get(resp, "artist", "id"):
+            credited_artist_ids.add(str(artist_id))
+
+        if performer_id := safe_get(resp, "performer", "id"):
+            credited_artist_ids.add(str(performer_id))
+
+        # Do not add composer to credited_artist_ids because sometimes the artist is credited as a coposer on a cover version that is performed by someone else.
+        # In most cases, this is exactly what we don't want to download by using the ensure_correct_artist filter.
+        # if composer_id := safe_get(resp, "composer", "id"):
+        #     credited_artist_ids.add(str(composer_id))
 
         albumcomposer = typed(safe_get(resp, "composer", "name", default=""), str)
         _label = resp.get("label")
@@ -141,6 +156,7 @@ class AlbumMetadata:
             info,
             album,
             albumartist,
+            credited_artist_ids,
             year,
             genre=genres,
             covers=cover_urls,
@@ -170,6 +186,8 @@ class AlbumMetadata:
         _copyright = None
         description = None
         albumartist = typed(safe_get(resp, "artist", "name"), str)
+        # todo: implement credited_artist_ids for deezer
+        credited_artist_ids: set[str] = set()
         albumcomposer = None
         label = resp.get("label")
         booklets = None
@@ -201,6 +219,7 @@ class AlbumMetadata:
             info,
             album,
             albumartist,
+            credited_artist_ids,
             year,
             genre=genres,
             covers=cover_urls,
@@ -232,6 +251,8 @@ class AlbumMetadata:
         artist = typed(safe_get(track, "publisher_metadata", "artist"), str | None)
         artist = artist or typed(track["user"]["username"], str)
         albumartist = artist
+        # todo: implement credited_artist_ids for soundcloud
+        credited_artist_ids: set[str] = set()
         date = typed(track.get("created_at"), str)
         year = date[:4]
         label = typed(track.get("label_name"), str | None)
@@ -262,6 +283,7 @@ class AlbumMetadata:
             info,
             album_title,
             albumartist,
+            credited_artist_ids,
             year,
             genre=genres,
             covers=covers,
@@ -308,6 +330,9 @@ class AlbumMetadata:
         if not albumartist:
             albumartist = typed(safe_get(resp, "artist", "name", default=""), str)
 
+        # todo: implement credited_artist_ids for tidal
+        credited_artist_ids: set[str] = set()
+
         disctotal = typed(resp.get("numberOfVolumes", 1), int)
         # label not returned by API
 
@@ -350,6 +375,7 @@ class AlbumMetadata:
             info,
             album,
             albumartist,
+            credited_artist_ids,
             year,
             genre=[],
             covers=covers,
@@ -391,6 +417,9 @@ class AlbumMetadata:
             albumartist = typed(
                 safe_get(resp, "artist", "name", default="Unknown Albumbartist"), str
             )
+
+        # todo: implement credited_artist_ids for tidal playlist track
+        credited_artist_ids: set[str] = set()
 
         disctotal = typed(resp.get("volumeNumber", 1), int)
         # label not returned by API
@@ -434,6 +463,7 @@ class AlbumMetadata:
             info,
             album,
             albumartist,
+            credited_artist_ids,
             year,
             genre=[],
             covers=covers,
@@ -460,6 +490,8 @@ class AlbumMetadata:
         date = album_resp["release_date"]
         year = date[:4]
         albumartist = ", ".join(a["name"] for a in resp["contributors"])
+        # todo: implement credited_artist_ids for incomplete deezer track
+        credited_artist_ids: set[str] = set()
         explicit = resp.get("explicit_lyrics", False)
 
         info = AlbumInfo(
@@ -476,6 +508,7 @@ class AlbumMetadata:
             info,
             album,
             albumartist,
+            credited_artist_ids,
             year,
             genre=[],
             covers=covers,

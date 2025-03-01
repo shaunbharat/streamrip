@@ -120,6 +120,8 @@ class ConversionConfig:
 class QobuzDiscographyFilterConfig:
     # Remove Collectors Editions, live recordings, etc.
     extras: bool
+    # Only download albums if the artist id requested, matches an id that is credited on the album.
+    ensure_correct_artist: bool
     # Picks the highest quality out of albums with identical titles.
     repeats: bool
     # Remove EPs and Singles
