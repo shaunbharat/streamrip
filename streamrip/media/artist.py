@@ -86,7 +86,7 @@ class Artist(Media):
         self, albums: list[Album], filt: QobuzDiscographyFilterConfig
     ) -> list[Album]:
         _albums = albums
-        if filt._ensure_correct_artist:
+        if filt.ensure_correct_artist:
             _albums = filter(self._ensure_correct_artist, _albums)
         if filt.repeats_prefer_explicit or filt.repeats_prefer_quality:
             _albums = self._filter_repeats(_albums, filt.repeats_prefer_explicit)
