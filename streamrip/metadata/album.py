@@ -106,9 +106,6 @@ class AlbumMetadata:
         if performer_id := safe_get(resp, "performer", "id"):
             credited_artist_ids.add(str(performer_id))
 
-        if composer_id := safe_get(resp, "composer", "id"):
-            credited_artist_ids.add(str(composer_id))
-
         albumcomposer = typed(safe_get(resp, "composer", "name", default=""), str)
         _label = resp.get("label")
         if isinstance(_label, dict):
