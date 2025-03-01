@@ -24,7 +24,7 @@ RESOLVE_CHUNK_SIZE = 10
 class Artist(Media):
     """Represents a list of albums. Used by Artist and Label classes."""
 
-    name: str
+    meta: ArtistMetadata
     albums: list[PendingAlbum]
     client: Client
     config: Config
@@ -66,6 +66,7 @@ class Artist(Media):
             # Skip if album doesn't pass the filter
             if (
                 album is None
+                or (filters.ensure_correct_artist and not self._ensure_correct_artist(album))
                 or (filters.extras and not self._extras(album))
                 or (filters.features and not self._features(album))
                 or (filters.non_studio_albums and not self._non_studio_albums(album))
@@ -85,6 +86,8 @@ class Artist(Media):
         self, albums: list[Album], filt: QobuzDiscographyFilterConfig
     ) -> list[Album]:
         _albums = albums
+        if filt._ensure_correct_artist:
+            _albums = filter(self._ensure_correct_artist, _albums)
         if filt.repeats_prefer_explicit or filt.repeats_prefer_quality:
             _albums = self._filter_repeats(_albums, filt.repeats_prefer_explicit)
         if filt.extras:
@@ -96,6 +99,10 @@ class Artist(Media):
         if filt.non_remaster:
             _albums = filter(self._non_remaster, _albums)
         return list(_albums)
+
+    def _ensure_correct_artist(self, a: Album) -> bool:
+        """Filter out albums that are not by the correct artist, or credits the artist."""
+        return self.meta.id in a.meta.credited_artist_ids
 
     # Will not fail on any nonempty string
     _essence = re.compile(r"([^\(]+)(?:\s*[\(\[][^\)][\)\]])*")
@@ -158,7 +165,7 @@ class Artist(Media):
 
     def _features(self, a: Album) -> bool:
         """Filter out features."""
-        return a.meta.albumartist == self.name
+        return a.meta.albumartist == self.meta.name
 
     def _extras(self, a: Album) -> bool:
         """Filter out extras.
@@ -201,7 +208,7 @@ class PendingArtist(Pending):
             return None
 
         try:
-            meta = ArtistMetadata.from_resp(resp, self.client.source)
+            meta = ArtistMetadata.from_resp(self.id, resp, self.client.source)
         except Exception as e:
             logger.error(
                 f"Error building artist metadata: {e}",
@@ -212,4 +219,4 @@ class PendingArtist(Pending):
             PendingAlbum(album_id, self.client, self.config, self.db)
             for album_id in meta.album_ids()
         ]
-        return Artist(meta.name, albums, self.client, self.config)
+        return Artist(meta, albums, self.client, self.config)
