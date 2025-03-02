@@ -118,9 +118,11 @@ class Artist(Media):
         """
         groups: dict[str, list[Album]] = {}
         for a in albums:
-            match = self._essence.match(a.meta.album)
-            assert match is not None
-            title = match.group(1).strip().lower()
+            # match = self._essence.match(a.meta.album)
+            # assert match is not None
+            # title = match.group(1).strip().lower()
+            # todo: temp fix. experimental exact match for repeats
+            title = a.meta.album.strip().lower()
             items = groups.get(title, [])
             items.append(a)
             groups[title] = items
