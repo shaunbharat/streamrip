@@ -289,29 +289,3 @@ class Main:
         # may be able to share downloaded artwork in the same `rip` session
         # We don't know that a cover will not be used again until end of execution
         remove_artwork_tempdirs()
-
-        # Clean album folders that were created but do not contain any music files (albums that resolved but did not pass the filter to download)
-        LIBRARY_PATH = Path(self.config.session.downloads.folder).resolve()
-        MUSIC_EXTENSIONS = {".flac", ".mp3"}
-
-        def contains_music(folder: Path) -> bool:
-            """Check if a folder (or its subfolders) contains any music files."""
-            for file in folder.iterdir():
-                if file.suffix.lower() in MUSIC_EXTENSIONS:
-                    print(f"Found music file: {file}")
-                    return True
-            return False
-
-        def delete_empty_folders(folder: Path):
-            """Recursively delete folders that do not contain any music files."""
-            for source_folder in folder.iterdir():
-                if source_folder.is_dir():
-                    for subfolder in source_folder.iterdir():
-                        if subfolder.is_dir():
-                            # If the folder is empty or contains no music, delete it
-                            if not contains_music(subfolder):
-                                print(f"Deleting folder: {subfolder}")
-                                shutil.rmtree(subfolder)
-
-        if LIBRARY_PATH.exists() and LIBRARY_PATH.is_dir():
-            delete_empty_folders(LIBRARY_PATH)
