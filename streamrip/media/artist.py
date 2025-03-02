@@ -2,7 +2,7 @@ import asyncio
 import logging
 import re
 import shutil
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ..client import Client
 from ..config import Config, QobuzDiscographyFilterConfig
@@ -30,8 +30,6 @@ class Artist(Media):
     client: Client
     config: Config
 
-    failed_albums: list[Album] = field(default_factory=list)
-
     async def preprocess(self):
         pass
 
@@ -46,9 +44,7 @@ class Artist(Media):
             await self._download_async(filter_conf)
 
     async def postprocess(self):
-        # delete the folders of resolved albums that didn't pass the filter (meaning, no music was downloaded)
-        for album in self.failed_albums:
-                shutil.rmtree(album.folder, ignore_errors=True)
+        pass
 
     async def _resolve_then_download(self, filters: QobuzDiscographyFilterConfig):
         """Resolve all artist albums, then download.
@@ -61,7 +57,12 @@ class Artist(Media):
         )
         resolved = [a for a in resolved_or_none if a is not None]
         filtered_albums = self._apply_filters(resolved, filters)
-        self.failed_albums = [a for a in resolved if a not in filtered_albums]
+
+        # delete the folders of resolved albums that didn't pass the filter
+        # for album in resolved:
+        #     if album not in filtered_albums:
+        #         shutil.rmtree(album.folder, ignore_errors=True)
+
         batches = self.batch([a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE)
         for batch in batches:
             await asyncio.gather(*batch)
