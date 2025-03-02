@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import re
-import os
+import shutil
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -59,17 +59,10 @@ class Artist(Media):
             """Recursively delete folders that do not contain any music files."""
             for subfolder in folder.iterdir():
                 if subfolder.is_dir():
-                    delete_empty_folders(subfolder)  # Recursively check subdirectories
-
                     # If the folder is empty or contains no music, delete it
                     if not contains_music(subfolder):
                         print(f"Deleting folder: {subfolder}")
-                        for item in subfolder.rglob("*"):
-                            if item.name.endswith(".flac"):
-                                continue
-                            else:
-                                item.unlink()  # Remove files
-                        subfolder.rmdir()  # Remove empty folder
+                        shutil.rmtree(subfolder)
 
         if LIBRARY_PATH.exists() and LIBRARY_PATH.is_dir():
             delete_empty_folders(LIBRARY_PATH)
