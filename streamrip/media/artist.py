@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import re
-import shutil
+import os
+from pathlib import Path
 from dataclasses import dataclass
 
 from ..client import Client
@@ -44,7 +45,34 @@ class Artist(Media):
             await self._download_async(filter_conf)
 
     async def postprocess(self):
-        pass
+        LIBRARY_PATH = Path(self.config.session.downloads.folder).resolve()
+        MUSIC_EXTENSIONS = {".flac", ".mp3"}
+
+        def contains_music(folder: Path) -> bool:
+            """Check if a folder (or its subfolders) contains any music files."""
+            for file in folder.rglob("*"):
+                if file.suffix.lower() in MUSIC_EXTENSIONS:
+                    return True
+            return False
+
+        def delete_empty_folders(folder: Path):
+            """Recursively delete folders that do not contain any music files."""
+            for subfolder in folder.iterdir():
+                if subfolder.is_dir():
+                    delete_empty_folders(subfolder)  # Recursively check subdirectories
+
+                    # If the folder is empty or contains no music, delete it
+                    if not contains_music(subfolder):
+                        print(f"Deleting folder: {subfolder}")
+                        for item in subfolder.rglob("*"):
+                            if item.name.endswith(".flac"):
+                                continue
+                            else:
+                                item.unlink()  # Remove files
+                        subfolder.rmdir()  # Remove empty folder
+
+        if LIBRARY_PATH.exists() and LIBRARY_PATH.is_dir():
+            delete_empty_folders(LIBRARY_PATH)
 
     async def _resolve_then_download(self, filters: QobuzDiscographyFilterConfig):
         """Resolve all artist albums, then download.
@@ -57,12 +85,6 @@ class Artist(Media):
         )
         resolved = [a for a in resolved_or_none if a is not None]
         filtered_albums = self._apply_filters(resolved, filters)
-
-        # delete the folders of resolved albums that didn't pass the filter
-        # for album in resolved:
-        #     if album not in filtered_albums:
-        #         shutil.rmtree(album.folder, ignore_errors=True)
-
         batches = self.batch([a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE)
         for batch in batches:
             await asyncio.gather(*batch)
