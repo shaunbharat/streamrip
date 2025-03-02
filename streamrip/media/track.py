@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import json
 from dataclasses import dataclass
 
 from .. import converter
@@ -161,6 +162,9 @@ class PendingTrack(Pending):
         else:
             folder = self.folder
 
+        with open(os.path.join(folder, f"{meta.title}.json"), "w", encoding="utf-8") as file:
+            file.write(json.dumps(resp, indent=4))
+
         return Track(
             meta,
             downloadable,
@@ -238,6 +242,10 @@ class PendingSingle(Pending):
             self._download_cover(album.covers, folder),
             self.client.get_downloadable(self.id, quality),
         )
+
+        with open(os.path.join(folder, f"single.qobuz.json"), "w", encoding="utf-8") as file:
+            file.write(json.dumps(resp, indent=4))
+
         return Track(
             meta,
             downloadable,
