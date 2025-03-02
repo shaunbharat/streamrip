@@ -111,7 +111,7 @@ class Track(Media):
         )
 
     def _save_metadata(self):
-        with open(os.path.join(self.folder, f"{self.meta.title}.metadata.json"), "w", encoding="utf-8") as file:
+        with open(f"{self.download_path}.track.metadata.json", "w", encoding="utf-8") as file:
             file.write(self.meta.json_metadata)
 
 
