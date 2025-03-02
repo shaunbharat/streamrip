@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import json
 from dataclasses import dataclass
 
 from .. import progress
@@ -42,6 +41,10 @@ class Album(Media):
 
     async def postprocess(self):
         progress.remove_title(self.meta.album)
+
+    def _save_metadata(self):
+        with open(os.path.join(self.folder, f"album.metadata.json"), "w", encoding="utf-8") as file:
+            file.write(self.meta.json_metadata)
 
 
 @dataclass(slots=True)
@@ -95,9 +98,6 @@ class PendingAlbum(Pending):
             )
             for id in tracklist
         ]
-
-        with open(os.path.join(album_folder, f"album.qobuz.json"), "w", encoding="utf-8") as file:
-            file.write(json.dumps(resp, indent=4))
 
         logger.debug("Pending tracks: %s", pending_tracks)
         return Album(meta, pending_tracks, self.config, album_folder, self.db)

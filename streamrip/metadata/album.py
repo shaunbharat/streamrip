@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -32,6 +33,7 @@ class AlbumInfo:
 
 @dataclass(slots=True)
 class AlbumMetadata:
+    json_metadata: str
     info: AlbumInfo
     album: str
     albumartist: str
@@ -83,6 +85,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_qobuz(cls, resp: dict) -> AlbumMetadata:
+        json_metadata = json.dumps(resp, indent=4)
         album = resp.get("title", "Unknown Album")
         tracktotal = resp.get("tracks_count", 1)
         genre = resp.get("genres_list") or resp.get("genre") or []
@@ -148,6 +151,7 @@ class AlbumMetadata:
             booklets=booklets,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album,
             albumartist,
@@ -171,6 +175,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_deezer(cls, resp: dict) -> AlbumMetadata | None:
+        json_metadata = json.dumps(resp, indent=4)
         album = resp.get("title", "Unknown Album")
         tracktotal = typed(resp.get("track_total", 0) or resp.get("nb_tracks", 0), int)
         disctotal = typed(resp["tracks"][-1]["disk_number"], int)
@@ -211,6 +216,7 @@ class AlbumMetadata:
             booklets=booklets,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album,
             albumartist,
@@ -234,6 +240,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_soundcloud(cls, resp) -> AlbumMetadata:
+        json_metadata = json.dumps(resp, indent=4)
         track = resp
         track_id = track["id"]
         bit_depth, sampling_rate = None, None
@@ -275,6 +282,7 @@ class AlbumMetadata:
             booklets=None,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album_title,
             albumartist,
@@ -308,6 +316,7 @@ class AlbumMetadata:
 
 
         """
+        json_metadata = json.dumps(resp, indent=4)
         streamable = resp.get("allowStreaming", False)
         if not streamable:
             return None
@@ -367,6 +376,7 @@ class AlbumMetadata:
             booklets=None,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album,
             albumartist,
@@ -390,6 +400,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_tidal_playlist_track_resp(cls, resp: dict) -> AlbumMetadata | None:
+        json_metadata = json.dumps(resp, indent=4)
         album_resp = resp["album"]
         streamable = resp.get("allowStreaming", False)
         if not streamable:
@@ -455,6 +466,7 @@ class AlbumMetadata:
             booklets=None,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album,
             albumartist,
@@ -478,6 +490,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_incomplete_deezer_track_resp(cls, resp: dict) -> AlbumMetadata | None:
+        json_metadata = json.dumps(resp, indent=4)
         album_resp = resp["album"]
         album_id = album_resp["id"]
         album = album_resp["title"]
@@ -500,6 +513,7 @@ class AlbumMetadata:
             booklets=None,
         )
         return AlbumMetadata(
+            json_metadata,
             info,
             album,
             albumartist,

@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import json
 from dataclasses import dataclass
 
 from .. import converter
@@ -35,6 +34,7 @@ class Track(Media):
     async def preprocess(self):
         self._set_download_path()
         os.makedirs(self.folder, exist_ok=True)
+        self._save_metadata()
         if self.is_single:
             add_title(self.meta.title)
 
@@ -110,6 +110,10 @@ class Track(Media):
             f"{track_path}.{self.downloadable.extension}",
         )
 
+    def _save_metadata(self):
+        with open(os.path.join(self.folder, f"{self.meta.title}.metadata.json"), "w", encoding="utf-8") as file:
+            file.write(self.meta.json_metadata)
+
 
 @dataclass(slots=True)
 class PendingTrack(Pending):
@@ -161,9 +165,6 @@ class PendingTrack(Pending):
             folder = os.path.join(self.folder, f"Disc {meta.discnumber}")
         else:
             folder = self.folder
-
-        with open(os.path.join(folder, f"{meta.title}.json"), "w", encoding="utf-8") as file:
-            file.write(json.dumps(resp, indent=4))
 
         return Track(
             meta,
@@ -242,9 +243,6 @@ class PendingSingle(Pending):
             self._download_cover(album.covers, folder),
             self.client.get_downloadable(self.id, quality),
         )
-
-        with open(os.path.join(folder, f"single.qobuz.json"), "w", encoding="utf-8") as file:
-            file.write(json.dumps(resp, indent=4))
 
         return Track(
             meta,
