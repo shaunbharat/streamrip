@@ -59,9 +59,9 @@ class Artist(Media):
         filtered_albums = self._apply_filters(resolved, filters)
 
         # delete the folders of resolved albums that didn't pass the filter
-        for album in resolved:
-            if album not in filtered_albums:
-                shutil.rmtree(album.folder, ignore_errors=True)
+        # for album in resolved:
+        #     if album not in filtered_albums:
+        #         shutil.rmtree(album.folder, ignore_errors=True)
 
         batches = self.batch([a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE)
         for batch in batches:

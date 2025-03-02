@@ -29,6 +29,7 @@ class Album(Media):
 
     async def preprocess(self):
         progress.add_title(self.meta.album)
+        self._save_metadata()
 
     async def download(self):
         async def _resolve_and_download(pending: Pending):
@@ -43,7 +44,7 @@ class Album(Media):
         progress.remove_title(self.meta.album)
 
     def _save_metadata(self):
-        with open(os.path.join(self.folder, f"album.metadata.json"), "w", encoding="utf-8") as file:
+        with open(os.path.join(self.folder, f"album.album.metadata.json"), "w", encoding="utf-8") as file:
             file.write(self.meta.json_metadata)
 
 
