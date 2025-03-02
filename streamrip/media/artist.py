@@ -1,8 +1,6 @@
 import asyncio
 import logging
 import re
-import shutil
-from pathlib import Path
 from dataclasses import dataclass
 
 from ..client import Client
@@ -45,27 +43,7 @@ class Artist(Media):
             await self._download_async(filter_conf)
 
     async def postprocess(self):
-        LIBRARY_PATH = Path(self.config.session.downloads.folder).resolve()
-        MUSIC_EXTENSIONS = {".flac", ".mp3"}
-
-        def contains_music(folder: Path) -> bool:
-            """Check if a folder (or its subfolders) contains any music files."""
-            for file in folder.rglob("*"):
-                if file.suffix.lower() in MUSIC_EXTENSIONS:
-                    return True
-            return False
-
-        def delete_empty_folders(folder: Path):
-            """Recursively delete folders that do not contain any music files."""
-            for subfolder in folder.iterdir():
-                if subfolder.is_dir():
-                    # If the folder is empty or contains no music, delete it
-                    if not contains_music(subfolder):
-                        print(f"Deleting folder: {subfolder}")
-                        shutil.rmtree(subfolder)
-
-        if LIBRARY_PATH.exists() and LIBRARY_PATH.is_dir():
-            delete_empty_folders(LIBRARY_PATH)
+        pass
 
     async def _resolve_then_download(self, filters: QobuzDiscographyFilterConfig):
         """Resolve all artist albums, then download.
