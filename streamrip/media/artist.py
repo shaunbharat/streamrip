@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import shutil
 from dataclasses import dataclass
 
 from ..client import Client
@@ -56,6 +57,12 @@ class Artist(Media):
         )
         resolved = [a for a in resolved_or_none if a is not None]
         filtered_albums = self._apply_filters(resolved, filters)
+
+        # delete the folders of resolved albums that didn't pass the filter
+        for album in resolved:
+            if album not in filtered_albums:
+                shutil.rmtree(album.folder, ignore_errors=True)
+
         batches = self.batch([a.rip() for a in filtered_albums], RESOLVE_CHUNK_SIZE)
         for batch in batches:
             await asyncio.gather(*batch)
