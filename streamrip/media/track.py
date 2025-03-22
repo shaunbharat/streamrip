@@ -34,6 +34,7 @@ class Track(Media):
     async def preprocess(self):
         self._set_download_path()
         os.makedirs(self.folder, exist_ok=True)
+        self._save_metadata()
         if self.is_single:
             add_title(self.meta.title)
 
@@ -108,6 +109,10 @@ class Track(Media):
             self.folder,
             f"{track_path}.{self.downloadable.extension}",
         )
+
+    def _save_metadata(self):
+        with open(f"{self.download_path}.track.metadata.json", "w", encoding="utf-8") as file:
+            file.write(self.meta.json_metadata)
 
 
 @dataclass(slots=True)
@@ -238,6 +243,7 @@ class PendingSingle(Pending):
             self._download_cover(album.covers, folder),
             self.client.get_downloadable(self.id, quality),
         )
+
         return Track(
             meta,
             downloadable,

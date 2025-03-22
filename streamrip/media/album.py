@@ -29,6 +29,7 @@ class Album(Media):
 
     async def preprocess(self):
         progress.add_title(self.meta.album)
+        self._save_metadata()
 
     async def download(self):
         async def _resolve_and_download(pending: Pending):
@@ -50,6 +51,10 @@ class Album(Media):
 
     async def postprocess(self):
         progress.remove_title(self.meta.album)
+
+    def _save_metadata(self):
+        with open(os.path.join(self.folder, f"album.album.metadata.json"), "w", encoding="utf-8") as file:
+            file.write(self.meta.json_metadata)
 
 
 @dataclass(slots=True)
@@ -103,6 +108,7 @@ class PendingAlbum(Pending):
             )
             for id in tracklist
         ]
+
         logger.debug("Pending tracks: %s", pending_tracks)
         return Album(meta, pending_tracks, self.config, album_folder, self.db)
 

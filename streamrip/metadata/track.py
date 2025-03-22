@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from typing import Optional
@@ -23,6 +24,7 @@ class TrackInfo:
 
 @dataclass(slots=True)
 class TrackMetadata:
+    json_metadata: str
     info: TrackInfo
 
     title: str
@@ -36,6 +38,7 @@ class TrackMetadata:
 
     @classmethod
     def from_qobuz(cls, album: AlbumMetadata, resp: dict) -> TrackMetadata | None:
+        json_metadata = json.dumps(resp, indent=4)
         title = typed(resp["title"].strip(), str)
         isrc = typed(resp["isrc"], str)
         streamable = typed(resp.get("streamable", False), bool)
@@ -76,6 +79,7 @@ class TrackMetadata:
             work=work,
         )
         return cls(
+            json_metadata=json_metadata,
             info=info,
             title=title,
             album=album,
@@ -88,6 +92,7 @@ class TrackMetadata:
 
     @classmethod
     def from_deezer(cls, album: AlbumMetadata, resp) -> TrackMetadata | None:
+        json_metadata = json.dumps(resp, indent=4)
         track_id = str(resp["id"])
         isrc = typed(resp["isrc"], str)
         bit_depth = 16
@@ -108,6 +113,7 @@ class TrackMetadata:
             work=work,
         )
         return cls(
+            json_metadata=json_metadata,
             info=info,
             title=title,
             album=album,
@@ -120,6 +126,7 @@ class TrackMetadata:
 
     @classmethod
     def from_soundcloud(cls, album: AlbumMetadata, resp: dict) -> TrackMetadata:
+        json_metadata = json.dumps(resp, indent=4)
         track = resp
         track_id = track["id"]
         isrc = typed(safe_get(track, "publisher_metadata", "isrc"), str | None)
@@ -142,6 +149,7 @@ class TrackMetadata:
             work=None,
         )
         return cls(
+            json_metadata=json_metadata,
             info=info,
             title=title,
             album=album,
@@ -154,6 +162,7 @@ class TrackMetadata:
 
     @classmethod
     def from_tidal(cls, album: AlbumMetadata, track) -> TrackMetadata:
+        json_metadata = json.dumps(track, indent=4)
         title = typed(track["title"], str).strip()
         item_id = str(track["id"])
         isrc = typed(track["isrc"], str)
@@ -204,6 +213,7 @@ class TrackMetadata:
             work=None,
         )
         return cls(
+            json_metadata=json_metadata,
             info=info,
             title=title,
             album=album,
